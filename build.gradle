@@ -1,0 +1,73 @@
+plugins {
+    id 'org.springframework.boot' version '2.1.5.RELEASE'
+    id 'io.spring.dependency-management' version '1.0.9.RELEASE'
+    id 'java'
+    id 'com.ewerk.gradle.plugins.querydsl' version '1.0.10'
+}
+
+group = 'com.heesuk.querydsl.debug'
+version = '0.0.1-SNAPSHOT'
+
+sourceCompatibility = '1.8'
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+ext {
+    querydslSrcDir = 'src/querydsl/java'
+    querydslVersion = '4.3.1'
+}
+
+querydsl {
+    library = "com.querydsl:querydsl-apt"
+    querydslDefault = true
+    jpa = true
+}
+
+compileQuerydsl {
+    options.annotationProcessorPath = configurations.querydsl
+    options.compilerArgs = [
+            '-proc:only',
+            '-processor',
+            project.querydsl.processors() + ',lombok.launch.AnnotationProcessorHider$AnnotationProcessor'
+    ]
+}
+
+configurations {
+    querydsl.extendsFrom compileClasspath
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src/main/java', querydslSrcDir]
+        }
+    }
+}
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    implementation("com.querydsl:querydsl-core:$querydslVersion")
+    implementation("com.querydsl:querydsl-sql:$querydslVersion")
+//    implementation("com.querydsl:querydsl-jpa:$querydslVersion")
+
+    //fixed bug version `added forCount in AbstractJpaSqlQuery`
+    compile files('external-libs/querydsl-jpa-4.3.2-SNAPSHOT.jar')
+
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    runtime('com.h2database:h2')
+
+    testImplementation('org.springframework.boot:spring-boot-starter-test') {
+        exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+    }
+}
