@@ -90,7 +90,6 @@ public class BookRepository {
         this.emf = emf;
     }
 
-    //TODO: get fetch results
     public QueryResults<Book> getBooks(int offset, int limit) {
         return queryFactory
             .selectFrom(book)
